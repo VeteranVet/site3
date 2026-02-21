@@ -1651,10 +1651,10 @@
     document.getElementById('generatedTxId').textContent = txId;
 
     const amt = parseFloat(document.getElementById('amount').value) || 0;
-    const totalUsdc = (amt + ESCROW_FEE).toFixed(2);
-    document.getElementById('paymentAmountDisplay').textContent = fmt(parseFloat(totalUsdc)) + ' USDC';
+    const totalUSD = (amt + ESCROW_FEE).toFixed(2);
+    document.getElementById('paymentAmountDisplay').textContent = fmt(parseFloat(totalUSD)) + ' USD';
 
-    window._paymentAmount = totalUsdc;
+    window._paymentAmount = totalUSD;
 
     document.getElementById('inspectionSummary').textContent = state.inspection + ' day(s)';
 
