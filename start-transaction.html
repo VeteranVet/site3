@@ -763,8 +763,7 @@
         </div>
       </div>
 
-      <!-- hidden input stores the selected service value for validation/submit -->
-      <input type="hidden" id="tx-title" />
+      <!-- hidden inputs always present -->
       <input type="hidden" id="tx-service-type" />
 
       <div class="card">
@@ -773,44 +772,58 @@
           Description
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Select the Service Type</label>
-
-            <!-- Custom dropdown trigger -->
-            <div id="svc-dropdown" style="position:relative;">
-              <div id="svc-trigger" onclick="toggleSvcDropdown()" style="
-                display:flex; align-items:center; gap:10px;
-                padding:0.75rem 1rem; border:1.5px solid #e8edf5; border-radius:8px;
-                background:white; cursor:pointer; user-select:none;
-                font-family:'DM Sans',sans-serif; font-size:0.9rem; color:#8a99b3;
-                transition:border-color 0.2s;
-              ">
-                <span id="svc-trigger-icon" style="display:none;flex-shrink:0;"></span>
-                <span id="svc-trigger-label" style="flex:1;">— Choose a service —</span>
-                <svg id="svc-chevron" viewBox="0 0 12 8" width="12" height="8" style="flex-shrink:0;transition:transform 0.2s;"><path d="M1 1l5 5 5-5" stroke="#8a99b3" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
-              </div>
-
-              <!-- Dropdown panel -->
-              <div id="svc-panel" style="
-                display:none; position:absolute; top:calc(100% + 4px); left:0; right:0;
-                background:white; border:1.5px solid #e8edf5; border-radius:10px;
-                box-shadow:0 8px 32px rgba(13,43,82,0.13); z-index:500;
-                max-height:340px; overflow-y:auto;
-              ">
-                <!-- groups injected by JS -->
-              </div>
+        <!-- ── STANDARD fields (shown for all categories EXCEPT services) ── -->
+        <div id="desc-standard">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Transaction Title</label>
+              <input type="text" id="tx-title" placeholder="e.g. Sale of premium-domain.com" />
+              <span class="field-error" id="title-error">Please enter a transaction title.</span>
             </div>
-            <span class="field-error" id="service-type-error">Please select a service type.</span>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Description <span class="optional">(optional but recommended)</span></label>
+              <textarea id="tx-desc" placeholder="Describe what is being bought or sold, any important conditions, delivery method, etc."></textarea>
+            </div>
           </div>
         </div>
 
-        <div class="form-row" id="other-desc-row" style="display:none;">
-          <div class="form-group">
-            <label>Describe the Service <span class="optional">(required for "Other")</span></label>
-            <textarea id="tx-desc" placeholder="Please describe the service you're receiving..."></textarea>
+        <!-- ── SERVICES fields (shown only when category = services) ── -->
+        <div id="desc-services" style="display:none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Select the Service Type</label>
+              <div id="svc-dropdown" style="position:relative;">
+                <div id="svc-trigger" onclick="toggleSvcDropdown()" style="
+                  display:flex; align-items:center; gap:10px;
+                  padding:0.75rem 1rem; border:1.5px solid #e8edf5; border-radius:8px;
+                  background:white; cursor:pointer; user-select:none;
+                  font-family:'DM Sans',sans-serif; font-size:0.9rem; color:#8a99b3;
+                  transition:border-color 0.2s;
+                ">
+                  <span id="svc-trigger-icon" style="display:none;flex-shrink:0;"></span>
+                  <span id="svc-trigger-label" style="flex:1;">— Choose a service —</span>
+                  <svg id="svc-chevron" viewBox="0 0 12 8" width="12" height="8" style="flex-shrink:0;transition:transform 0.2s;"><path d="M1 1l5 5 5-5" stroke="#8a99b3" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                </div>
+                <div id="svc-panel" style="
+                  display:none; position:absolute; top:calc(100% + 4px); left:0; right:0;
+                  background:white; border:1.5px solid #e8edf5; border-radius:10px;
+                  box-shadow:0 8px 32px rgba(13,43,82,0.13); z-index:500;
+                  max-height:340px; overflow-y:auto;
+                "><!-- groups injected by JS --></div>
+              </div>
+              <span class="field-error" id="service-type-error">Please select a service type.</span>
+            </div>
+          </div>
+          <div class="form-row" id="other-desc-row" style="display:none;">
+            <div class="form-group">
+              <label>Describe the Service <span class="optional">(required for "Other")</span></label>
+              <textarea id="tx-desc-other" placeholder="Please describe the service you're receiving..."></textarea>
+            </div>
           </div>
         </div>
+
       </div>
 
       <style>
@@ -1478,7 +1491,15 @@
   function selectSvcOption(value) {
     // Update hidden inputs
     document.getElementById('tx-service-type').value = value;
-    document.getElementById('tx-title').value = value;
+    // Also create a hidden tx-title if not already there (for services mode, title = service name)
+    let titleEl = document.getElementById('tx-title');
+    if (!titleEl) {
+      titleEl = document.createElement('input');
+      titleEl.type = 'hidden';
+      titleEl.id = 'tx-title';
+      document.body.appendChild(titleEl);
+    }
+    titleEl.value = value;
 
     // Update trigger display
     const logoKey = SVC_LOGO_MAP[value] || 'generic';
@@ -1503,7 +1524,7 @@
 
     // Show/hide "Other" description box
     document.getElementById('other-desc-row').style.display = value === 'Other' ? '' : 'none';
-    if (value === 'Other') document.getElementById('tx-desc').style.borderColor = '';
+    if (value === 'Other') document.getElementById('tx-desc-other').style.borderColor = '';
 
     // Clear validation error
     hideError('service-type-error', null);
@@ -1527,6 +1548,19 @@
     option.classList.add('selected');
     state.category = option.dataset.value;
     document.getElementById('cat-error').classList.remove('show');
+
+    // Toggle description section based on category
+    const isServices = state.category === 'services';
+    document.getElementById('desc-standard').style.display = isServices ? 'none' : '';
+    document.getElementById('desc-services').style.display = isServices ? '' : 'none';
+
+    // Reset service type if switching away from services
+    if (!isServices) {
+      document.getElementById('tx-service-type').value = '';
+      document.getElementById('svc-trigger-label').textContent = '— Choose a service —';
+      document.getElementById('svc-trigger-icon').style.display = 'none';
+      document.getElementById('other-desc-row').style.display = 'none';
+    }
   }
 
   document.getElementById('categoryGrid').addEventListener('click', function(e) {
@@ -1732,27 +1766,31 @@
         showError('payment-error', 'payment-method'); ok = false;
       } else { hideError('payment-error', 'payment-method'); }
 
-      if (!document.getElementById('tx-title').value.trim()) {
-        // tx-title is auto-set from service selection, so just ensure service type is picked
-      } else { /* ok */ }
-
-      const svcType = document.getElementById('tx-service-type').value;
-      if (!svcType) {
-        document.getElementById('service-type-error').classList.add('show');
-        document.getElementById('svc-trigger').style.borderColor = 'var(--red)';
-        ok = false;
-      } else {
-        document.getElementById('service-type-error').classList.remove('show');
-        document.getElementById('svc-trigger').style.borderColor = '#e8edf5';
-        if (svcType === 'Other') {
-          const otherDesc = document.getElementById('tx-desc').value.trim();
-          if (!otherDesc) {
-            document.getElementById('tx-desc').style.borderColor = 'var(--red)';
-            ok = false;
-          } else {
-            document.getElementById('tx-desc').style.borderColor = '';
+      if (state.category === 'services') {
+        // Services mode: validate service type dropdown
+        const svcType = document.getElementById('tx-service-type').value;
+        if (!svcType) {
+          document.getElementById('service-type-error').classList.add('show');
+          document.getElementById('svc-trigger').style.borderColor = 'var(--red)';
+          ok = false;
+        } else {
+          document.getElementById('service-type-error').classList.remove('show');
+          document.getElementById('svc-trigger').style.borderColor = '#e8edf5';
+          if (svcType === 'Other') {
+            const otherDesc = document.getElementById('tx-desc-other').value.trim();
+            if (!otherDesc) {
+              document.getElementById('tx-desc-other').style.borderColor = 'var(--red)';
+              ok = false;
+            } else {
+              document.getElementById('tx-desc-other').style.borderColor = '';
+            }
           }
         }
+      } else {
+        // Standard mode: validate title field
+        if (!document.getElementById('tx-title').value.trim()) {
+          showError('title-error', 'tx-title'); ok = false;
+        } else { hideError('title-error', 'tx-title'); }
       }
     }
 
@@ -1823,8 +1861,8 @@
 
     const rows = [
       { k: 'Category', v: categoryLabels[state.category] || state.category, step: 1 },
-      { k: 'Transaction Title', v: document.getElementById('tx-title').value, step: 2 },
-      { k: 'Service Type', v: document.getElementById('tx-service-type').value + (document.getElementById('tx-service-type').value === 'Other' ? ': ' + (document.getElementById('tx-desc').value || '') : ''), step: 2 },
+      { k: 'Transaction Title', v: state.category === 'services' ? document.getElementById('tx-service-type').value : document.getElementById('tx-title').value, step: 2 },
+      ...(state.category === 'services' ? [{ k: 'Service Type', v: document.getElementById('tx-service-type').value + (document.getElementById('tx-service-type').value === 'Other' ? ': ' + (document.getElementById('tx-desc-other').value || '') : ''), step: 2 }] : []),
       { k: 'Amount', v: sym + fmt(amt) + ' ' + document.getElementById('currency').value, step: 2 },
       { k: 'Escrow Fee', v: '$250.00 USD (flat)', step: 2 },
       { k: 'Payment Method', v: paymentLabels[document.getElementById('payment-method').value] || '—', step: 2 },
@@ -1877,7 +1915,7 @@
       digital:'Digital Assets', services:'Services'
     };
     TBAuth.saveTransaction(txId, {
-      title: document.getElementById('tx-title').value,
+      title: state.category === 'services' ? document.getElementById('tx-service-type').value : document.getElementById('tx-title').value,
       category: categoryLabels[state.category] || state.category,
       amount: amt,
       currency: document.getElementById('currency').value,
