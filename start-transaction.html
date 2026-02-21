@@ -1009,7 +1009,7 @@
         <p style="font-size:0.88rem;color:var(--text-mid);margin-bottom:1.2rem;line-height:1.6;">Enter the TrustBridge username of the buyer or seller you're transacting with. They'll be linked to this transaction once it's created.</p>
         <div class="form-group">
           <label>Their TrustBridge Username</label>
-          <input type="text" id="counterparty-username" placeholder="e.g. johndoe_99" />
+          <input type="text" id="counterparty-username" placeholder="TrustBridge Username" />
           <span class="field-error" id="counterparty-error">Please enter the other party's username.</span>
           <div id="counterparty-status" style="margin-top:0.4rem;font-size:0.8rem;"></div>
         </div>
@@ -1901,10 +1901,10 @@
     document.getElementById('generatedTxId').textContent = txId;
 
     const amt = parseFloat(document.getElementById('amount').value) || 0;
-    const totalUsdc = (amt + ESCROW_FEE).toFixed(2);
-    document.getElementById('paymentAmountDisplay').textContent = fmt(parseFloat(totalUsdc)) + ' USDC';
+    const totalUSD = (amt + ESCROW_FEE).toFixed(2);
+    document.getElementById('paymentAmountDisplay').textContent = fmt(parseFloat(totalUSD)) + ' USD';
 
-    window._paymentAmount = totalUsdc;
+    window._paymentAmount = totalUSD;
 
     document.getElementById('inspectionSummary').textContent = state.inspection + ' day(s)';
 
