@@ -763,25 +763,86 @@
         </div>
       </div>
 
+      <!-- hidden input stores the selected service value for validation/submit -->
+      <input type="hidden" id="tx-title" />
+      <input type="hidden" id="tx-service-type" />
+
       <div class="card">
         <div class="card-title">
           <div class="card-title-icon">📝</div>
           Description
         </div>
+
         <div class="form-row">
           <div class="form-group">
-            <label>Transaction Title</label>
-            <input type="text" id="tx-title" placeholder="e.g. Sale of premium-domain.com" />
-            <span class="field-error" id="title-error">Please enter a transaction title.</span>
+            <label>Select the Service Type</label>
+
+            <!-- Custom dropdown trigger -->
+            <div id="svc-dropdown" style="position:relative;">
+              <div id="svc-trigger" onclick="toggleSvcDropdown()" style="
+                display:flex; align-items:center; gap:10px;
+                padding:0.75rem 1rem; border:1.5px solid #e8edf5; border-radius:8px;
+                background:white; cursor:pointer; user-select:none;
+                font-family:'DM Sans',sans-serif; font-size:0.9rem; color:#8a99b3;
+                transition:border-color 0.2s;
+              ">
+                <span id="svc-trigger-icon" style="display:none;flex-shrink:0;"></span>
+                <span id="svc-trigger-label" style="flex:1;">— Choose a service —</span>
+                <svg id="svc-chevron" viewBox="0 0 12 8" width="12" height="8" style="flex-shrink:0;transition:transform 0.2s;"><path d="M1 1l5 5 5-5" stroke="#8a99b3" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+              </div>
+
+              <!-- Dropdown panel -->
+              <div id="svc-panel" style="
+                display:none; position:absolute; top:calc(100% + 4px); left:0; right:0;
+                background:white; border:1.5px solid #e8edf5; border-radius:10px;
+                box-shadow:0 8px 32px rgba(13,43,82,0.13); z-index:500;
+                max-height:340px; overflow-y:auto;
+              ">
+                <!-- groups injected by JS -->
+              </div>
+            </div>
+            <span class="field-error" id="service-type-error">Please select a service type.</span>
           </div>
         </div>
-        <div class="form-row">
+
+        <div class="form-row" id="other-desc-row" style="display:none;">
           <div class="form-group">
-            <label>Description <span class="optional">(optional but recommended)</span></label>
-            <textarea id="tx-desc" placeholder="Describe what is being bought or sold, any important conditions, delivery method, etc."></textarea>
+            <label>Describe the Service <span class="optional">(required for "Other")</span></label>
+            <textarea id="tx-desc" placeholder="Please describe the service you're receiving..."></textarea>
           </div>
         </div>
       </div>
+
+      <style>
+        /* ── Custom Service Dropdown ── */
+        #svc-panel::-webkit-scrollbar { width:6px; }
+        #svc-panel::-webkit-scrollbar-track { background:transparent; }
+        #svc-panel::-webkit-scrollbar-thumb { background:#e8edf5; border-radius:3px; }
+
+        .svc-group-label {
+          padding:0.55rem 1rem 0.25rem;
+          font-size:0.7rem; font-weight:700; letter-spacing:0.06em;
+          color:#8a99b3; text-transform:uppercase;
+          border-top:1px solid #f0f4fa;
+        }
+        .svc-group-label:first-child { border-top:none; }
+
+        .svc-option {
+          display:flex; align-items:center; gap:10px;
+          padding:0.6rem 1rem; cursor:pointer;
+          font-size:0.88rem; font-weight:500; color:#0d1f3c;
+          transition:background 0.13s;
+        }
+        .svc-option:hover { background:#f4f7fb; }
+        .svc-option.selected { background:#eef4ff; color:#2477d4; font-weight:600; }
+
+        .svc-logo {
+          width:22px; height:22px; border-radius:5px; flex-shrink:0;
+          display:flex; align-items:center; justify-content:center;
+          overflow:hidden;
+        }
+        .svc-logo svg { width:22px; height:22px; display:block; }
+      </style>
 
       <div class="card">
         <div class="card-title">
@@ -934,7 +995,7 @@
         </div>
         <p style="font-size:0.88rem;color:var(--text-mid);margin-bottom:1.2rem;line-height:1.6;">Enter the TrustBridge username of the buyer or seller you're transacting with. They'll be linked to this transaction once it's created.</p>
         <div class="form-group">
-          <label>Their TrustBridge Username <span class="optional">(optional)</span></label>
+          <label>Their TrustBridge Username</label>
           <input type="text" id="counterparty-username" placeholder="e.g. johndoe_99" />
           <span class="field-error" id="counterparty-error">Please enter the other party's username.</span>
           <div id="counterparty-status" style="margin-top:0.4rem;font-size:0.8rem;"></div>
@@ -1338,6 +1399,128 @@
     myFirst: '', myLast: '', myEmail: '', myPhone: '', myCountry: '', myAccountType: 'individual', myCompany: ''
   };
 
+  // ── SERVICE TYPE CUSTOM DROPDOWN ──
+  const SVC_LOGOS = {
+    tiktok: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="5" fill="#010101"/><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.02a8.18 8.18 0 004.79 1.53V7.12a4.85 4.85 0 01-1.02-.43z" fill="white"/></svg>`,
+    snapchat: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="5" fill="#FFFC00"/><path d="M12 3c-1.97 0-4.27.87-4.27 4.12v.44c-.5.13-1.36-.08-1.81.3-.22.18-.32.43-.28.68.08.45.63.73 1.14.9.06.02.14.04.18.09.05.08-.01.23-.05.31-.32.66-1.02 1.38-2.3 1.57-.16.02-.28.16-.24.32.08.35.57.62 1.5.8.06.01.1.07.13.13.04.11.04.25.08.41.06.24.24.37.5.37a3.97 3.97 0 00.47-.04c.32-.05.63-.08.97-.08.28 0 .55.03.82.12.51.18.98.55 1.57.95.59.4 1.26.82 2.17.83h.04c.92-.01 1.58-.43 2.17-.83.59-.4 1.06-.77 1.57-.95.27-.09.54-.12.82-.12.34 0 .65.03.97.08.14.02.3.04.47.04.26 0 .44-.13.5-.37.04-.16.04-.3.08-.41.03-.06.07-.12.13-.13.93-.18 1.42-.45 1.5-.8.04-.16-.08-.3-.24-.32-1.28-.19-1.98-.91-2.3-1.57-.04-.08-.1-.23-.05-.31.04-.05.12-.07.18-.09.51-.17 1.06-.45 1.14-.9.04-.25-.06-.5-.28-.68-.45-.38-1.31-.17-1.81-.3v-.44C16.27 3.87 13.97 3 12 3z" fill="#1a1a1a"/></svg>`,
+    instagram: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ig1" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f09433"/><stop offset="25%" stop-color="#e6683c"/><stop offset="50%" stop-color="#dc2743"/><stop offset="75%" stop-color="#cc2366"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs><rect width="24" height="24" rx="5" fill="url(#ig1)"/><rect x="4.5" y="4.5" width="15" height="15" rx="4.5" stroke="white" stroke-width="1.5" fill="none"/><circle cx="12" cy="12" r="3.8" stroke="white" stroke-width="1.5" fill="none"/><circle cx="17" cy="7" r="1.1" fill="white"/></svg>`,
+    x: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="5" fill="#000"/><path d="M17.75 3.5h2.9l-6.35 7.26 7.47 9.87h-5.85l-4.59-6-5.25 6H3.2l6.8-7.77L2.9 3.5h6l4.14 5.48 4.71-5.48zm-1.02 15.36h1.61L7.41 5.15H5.69l11.04 13.71z" fill="white"/></svg>`,
+    youtube: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="5" fill="#FF0000"/><path d="M21.08 8.33S20.86 6.84 20.22 6.19c-.73-.76-1.55-.77-1.92-.81C15.52 5.16 12 5.16 12 5.16s-3.52 0-6.3.22c-.37.04-1.19.05-1.92.81-.64.65-.86 2.14-.86 2.14S2.7 10.06 2.7 11.8v1.63c0 1.74.22 3.47.22 3.47s.22 1.49.86 2.14c.73.76 1.69.74 2.12.82C7.3 19.05 12 19.05 12 19.05s3.52 0 6.3-.23c.37-.04 1.19-.06 1.92-.82.64-.65.86-2.14.86-2.14s.22-1.73.22-3.47V11.8c0-1.74-.22-3.47-.22-3.47zM10.1 14.73V9.5l5.19 2.62-5.19 2.61z" fill="white"/></svg>`,
+    facebook: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="5" fill="#1877F2"/><path d="M16.5 4.5h-2.25C12.84 4.5 12 5.34 12 6.75v1.75h-2v2.5h2V19h3v-8h2l.5-2.5H15V7c0-.41.34-.75.75-.75H16.5V4.5z" fill="white"/></svg>`,
+    linkedin: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="5" fill="#0A66C2"/><path d="M7.5 10H5v9h2.5v-9zM6.25 8.75a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM19 19h-2.5v-4.5c0-1.1-.4-1.85-1.38-1.85-.75 0-1.2.5-1.4 1-.07.17-.09.42-.09.67V19H11v-9h2.4v1.23h.03c.46-.78 1.26-1.5 2.57-1.5C17.96 9.73 19 11.1 19 14.08V19z" fill="white"/></svg>`,
+    pinterest: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="5" fill="#E60023"/><path d="M12 2.5C6.76 2.5 2.5 6.76 2.5 12c0 3.97 2.44 7.38 5.94 8.77-.08-.74-.16-1.87.03-2.68.17-.73 1.14-4.83 1.14-4.83s-.29-.58-.29-1.44c0-1.35.79-2.36 1.77-2.36.83 0 1.24.62 1.24 1.37 0 .83-.53 2.08-.8 3.24-.23.97.48 1.76 1.44 1.76 1.73 0 3.06-1.82 3.06-4.45 0-2.33-1.68-3.96-4.07-3.96-2.77 0-4.4 2.08-4.4 4.22 0 .84.32 1.73.72 2.22a.28.28 0 01.07.28c-.07.3-.24.97-.27 1.1-.04.18-.14.22-.33.13-1.22-.57-1.98-2.35-1.98-3.78 0-3.08 2.24-5.91 6.45-5.91 3.39 0 6.02 2.42 6.02 5.64 0 3.36-2.12 6.07-5.07 6.07-.99 0-1.92-.51-2.24-1.12l-.61 2.32c-.22.85-.81 1.91-1.21 2.56.91.28 1.88.43 2.88.43 5.24 0 9.5-4.26 9.5-9.5S17.24 2.5 12 2.5z" fill="white"/></svg>`,
+    generic: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gn1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2477d4"/><stop offset="100%" stop-color="#0ea8a8"/></linearGradient></defs><rect width="24" height="24" rx="5" fill="url(#gn1)"/><circle cx="12" cy="12" r="4.5" stroke="white" stroke-width="1.5" fill="none"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`
+  };
+
+  const SVC_GROUPS = [
+    { label: 'TikTok', logo: 'tiktok', items: [
+      'TikTok Verification', 'TikTok Account Unban', 'TikTok Followers', 'TikTok Strike Wipe', 'TikTok Shadowban'
+    ]},
+    { label: 'Snapchat', logo: 'snapchat', items: [
+      'Snapchat Verification', 'Snapchat Views', 'Snapchat Spotlight Rewards Program', 'Snapchat Creator Rewards Program'
+    ]},
+    { label: 'Instagram', logo: 'instagram', items: [
+      'Instagram Verification', 'Instagram Unban', 'Instagram Strike Wipe', 'Instagram Shadowban'
+    ]},
+    { label: 'X (Twitter)', logo: 'x', items: [
+      'X Unban', 'X Shadowban', 'X Business Verification'
+    ]},
+    { label: 'YouTube', logo: 'youtube', items: [
+      'YouTube Monetization', 'YouTube Views', 'YouTube Verification'
+    ]},
+    { label: 'Facebook', logo: 'facebook', items: [
+      'Facebook Verification', 'Facebook Video Views', 'Facebook Followers'
+    ]},
+    { label: 'LinkedIn', logo: 'linkedin', items: [
+      'LinkedIn Verification'
+    ]},
+    { label: 'Pinterest', logo: 'pinterest', items: [
+      'Pinterest Verification', 'Pinterest Monetization Program'
+    ]},
+    { label: 'Other Services', logo: 'generic', items: [
+      'Rare Username Claim/Swap', 'Domain Claim/Swap', 'Account Growth (Any Platform)', 'Press Articles', 'Other'
+    ]}
+  ];
+
+  // Map each service value → logo key
+  const SVC_LOGO_MAP = {};
+  SVC_GROUPS.forEach(g => g.items.forEach(item => { SVC_LOGO_MAP[item] = g.logo; }));
+
+  function logoHTML(key) {
+    return `<span class="svc-logo">${SVC_LOGOS[key] || SVC_LOGOS.generic}</span>`;
+  }
+
+  function buildSvcDropdown() {
+    const panel = document.getElementById('svc-panel');
+    panel.innerHTML = SVC_GROUPS.map(g => `
+      <div class="svc-group-label">${g.label}</div>
+      ${g.items.map(item => `
+        <div class="svc-option" data-value="${item}" onclick="selectSvcOption('${item.replace(/'/g,"\\'")}')">
+          ${logoHTML(g.logo)}
+          <span>${item}</span>
+        </div>
+      `).join('')}
+    `).join('');
+  }
+
+  let _svcOpen = false;
+
+  function toggleSvcDropdown() {
+    _svcOpen = !_svcOpen;
+    const panel = document.getElementById('svc-panel');
+    const chevron = document.getElementById('svc-chevron');
+    const trigger = document.getElementById('svc-trigger');
+    panel.style.display = _svcOpen ? 'block' : 'none';
+    chevron.style.transform = _svcOpen ? 'rotate(180deg)' : '';
+    trigger.style.borderColor = _svcOpen ? '#2477d4' : '#e8edf5';
+  }
+
+  function selectSvcOption(value) {
+    // Update hidden inputs
+    document.getElementById('tx-service-type').value = value;
+    document.getElementById('tx-title').value = value;
+
+    // Update trigger display
+    const logoKey = SVC_LOGO_MAP[value] || 'generic';
+    const triggerIcon = document.getElementById('svc-trigger-icon');
+    const triggerLabel = document.getElementById('svc-trigger-label');
+    triggerIcon.innerHTML = SVC_LOGOS[logoKey];
+    triggerIcon.style.display = 'flex';
+    triggerLabel.textContent = value;
+    triggerLabel.style.color = '#0d1f3c';
+    triggerLabel.style.fontWeight = '500';
+
+    // Mark selected in panel
+    document.querySelectorAll('.svc-option').forEach(o => {
+      o.classList.toggle('selected', o.dataset.value === value);
+    });
+
+    // Close dropdown
+    _svcOpen = false;
+    document.getElementById('svc-panel').style.display = 'none';
+    document.getElementById('svc-chevron').style.transform = '';
+    document.getElementById('svc-trigger').style.borderColor = '#e8edf5';
+
+    // Show/hide "Other" description box
+    document.getElementById('other-desc-row').style.display = value === 'Other' ? '' : 'none';
+    if (value === 'Other') document.getElementById('tx-desc').style.borderColor = '';
+
+    // Clear validation error
+    hideError('service-type-error', null);
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('svc-dropdown').contains(e.target)) {
+      if (_svcOpen) {
+        _svcOpen = false;
+        document.getElementById('svc-panel').style.display = 'none';
+        document.getElementById('svc-chevron').style.transform = '';
+        document.getElementById('svc-trigger').style.borderColor = '#e8edf5';
+      }
+    }
+  });
+
   // ── CATEGORY SELECTION ──
   function selectCategory(option) {
     document.querySelectorAll('.cat-option').forEach(o => o.classList.remove('selected'));
@@ -1371,10 +1554,9 @@
 
   // SVG verified badge — same blue as site
   function verifiedBadge() {
-    return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-left:4px;vertical-align:middle;display:inline-block;">
-      <path d="M12 2C10.343 2 8.837 2.627 7.686 3.657L4.929 2.929C4.379 2.773 3.797 2.929 3.394 3.332C2.991 3.735 2.835 4.317 2.991 4.867L3.707 7.586C2.634 8.747 2 10.299 2 12C2 16.418 5.582 20 10 20H12C16.418 20 20 16.418 20 12C20 7.582 16.418 4 12 4V2Z" fill="none"/>
-      <path d="M12 1L14.5 3.5H18.5L19.5 7.5L22 10L19.5 12.5L18.5 16.5H14.5L12 19L9.5 16.5H5.5L4.5 12.5L2 10L4.5 7.5L5.5 3.5H9.5L12 1Z" fill="#2477d4"/>
-      <path d="M8.5 10.5L11 13L15.5 8" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-left:6px;">
+      <path d="M12 2L14.09 8.26L21 9.27L16.5 13.64L17.82 20.54L12 17.27L6.18 20.54L7.5 13.64L3 9.27L9.91 8.26L12 2Z" fill="#2477d4" stroke="#2477d4" stroke-width="0.5"/>
+      <path d="M9 12L11 14L15 10" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`;
   }
 
@@ -1382,7 +1564,7 @@
     const list = document.getElementById('mm-list');
     list.innerHTML = middlemen.map(name => `
       <div onclick="selectMiddleman('${name}')" style="
-        display:flex;align-items:center;
+        display:flex;align-items:center;justify-content:space-between;
         padding:0.75rem 1rem;cursor:pointer;
         transition:background 0.15s;font-size:0.92rem;font-weight:500;color:var(--navy);
         border-bottom:1px solid var(--light-gray);
@@ -1390,7 +1572,8 @@
       onmouseover="this.style.background='#f0f5ff'"
       onmouseout="this.style.background=''"
       id="mm-opt-${name}">
-        <span>${name}</span>${verifiedBadge()}
+        <span>${name}</span>
+        ${verifiedBadge()}
       </div>
     `).join('').replace(/border-bottom:1px solid var\(--light-gray\);\s*">\s*<span>Underground/, 'border-bottom:none;">\n        <span>Underground');
   }
@@ -1453,6 +1636,10 @@
   }
 
   // ── ACCOUNT TYPE (show/hide company) ──
+  document.getElementById('my-account-type').addEventListener('change', function() {
+    document.getElementById('company-row').style.display = this.value === 'business' ? 'flex' : 'none';
+  });
+
   // ── FEE CALCULATION ──
   const ESCROW_FEE = 250;
 
@@ -1483,6 +1670,8 @@
 
   document.getElementById('currency').addEventListener('change', updateFee);
   document.getElementById('payment-method').addEventListener('change', updateFee);
+
+  // ── STEP NAVIGATION ──
   function goToStep(n) {
     if (n > state.maxUnlocked) return;
     showStep(n);
@@ -1544,43 +1733,65 @@
       } else { hideError('payment-error', 'payment-method'); }
 
       if (!document.getElementById('tx-title').value.trim()) {
-        showError('title-error', 'tx-title'); ok = false;
-      } else { hideError('title-error', 'tx-title'); }
+        // tx-title is auto-set from service selection, so just ensure service type is picked
+      } else { /* ok */ }
+
+      const svcType = document.getElementById('tx-service-type').value;
+      if (!svcType) {
+        document.getElementById('service-type-error').classList.add('show');
+        document.getElementById('svc-trigger').style.borderColor = 'var(--red)';
+        ok = false;
+      } else {
+        document.getElementById('service-type-error').classList.remove('show');
+        document.getElementById('svc-trigger').style.borderColor = '#e8edf5';
+        if (svcType === 'Other') {
+          const otherDesc = document.getElementById('tx-desc').value.trim();
+          if (!otherDesc) {
+            document.getElementById('tx-desc').style.borderColor = 'var(--red)';
+            ok = false;
+          } else {
+            document.getElementById('tx-desc').style.borderColor = '';
+          }
+        }
+      }
     }
 
     if (step === 3) {
-      // First name required
-      if (!document.getElementById('my-first').value.trim()) {
-        showError('my-first-error', 'my-first'); ok = false;
-      } else { hideError('my-first-error', 'my-first'); }
+      const fields = [
+        { id: 'my-first', err: 'my-first-error' },
+        { id: 'my-last', err: 'my-last-error' },
+      ];
+      fields.forEach(f => {
+        const val = document.getElementById(f.id).value.trim();
+        if (!val) { showError(f.err, f.id); ok = false; }
+        else { hideError(f.err, f.id); }
+      });
 
-      // Last name required
-      if (!document.getElementById('my-last').value.trim()) {
-        showError('my-last-error', 'my-last'); ok = false;
-      } else { hideError('my-last-error', 'my-last'); }
-
-      // Counterparty — optional, just warn don't block
-      var cpVal = document.getElementById('counterparty-username').value.trim();
-      var cpStatus = document.getElementById('counterparty-status');
-      hideError('counterparty-error', 'counterparty-username');
-      if (cpVal) {
-        var curUser = TBAuth.getUser();
-        if (curUser && cpVal.toLowerCase() === curUser.username.toLowerCase()) {
-          cpStatus.innerHTML = '<span style="color:#e53e3e;">✗ You cannot invite yourself.</span>';
-        } else if (TBAuth.usernameExists(cpVal)) {
-          cpStatus.innerHTML = '<span style="color:#27a85e;font-weight:600;">✓ Username found on TrustBridge</span>';
-        } else {
-          cpStatus.innerHTML = '<span style="color:#e07b20;">⚠ Username not found — they\'ll need to create an account to accept.</span>';
-        }
-      }
-
-      // Middleman required
+      // Validate middleman selection
       const mm = document.getElementById('middleman-select').value;
       if (!mm) {
-        showError('middleman-error', null);
-        ok = false;
+        showError('middleman-error', 'middleman-select'); ok = false;
       } else {
-        hideError('middleman-error', null);
+        hideError('middleman-error', 'middleman-select');
+      }
+      const cpInput = document.getElementById('counterparty-username').value.trim();
+      const cpStatus = document.getElementById('counterparty-status');
+      const currentUser = TBAuth.getUser();
+      if (!cpInput) {
+        document.getElementById('counterparty-error').textContent = 'Please enter the other party\'s username.';
+        showError('counterparty-error', 'counterparty-username'); ok = false;
+        cpStatus.textContent = '';
+      } else if (currentUser && cpInput.toLowerCase() === currentUser.username.toLowerCase()) {
+        document.getElementById('counterparty-error').textContent = 'You cannot invite yourself.';
+        showError('counterparty-error', 'counterparty-username'); ok = false;
+      } else if (!TBAuth.usernameExists(cpInput)) {
+        document.getElementById('counterparty-error').textContent = 'Username not found on TrustBridge. They must have an account to be invited.';
+        showError('counterparty-error', 'counterparty-username'); ok = false;
+        cpStatus.innerHTML = '<span style="color:#e53e3e;">✗ No TrustBridge account found for this username.</span>';
+      } else {
+        hideError('counterparty-error', 'counterparty-username');
+        document.getElementById('counterparty-error').textContent = 'Please enter the other party\'s username.';
+        cpStatus.innerHTML = '<span style="color:#27a85e;font-weight:600;">✓ Username found on TrustBridge</span>';
       }
     }
 
@@ -1613,6 +1824,7 @@
     const rows = [
       { k: 'Category', v: categoryLabels[state.category] || state.category, step: 1 },
       { k: 'Transaction Title', v: document.getElementById('tx-title').value, step: 2 },
+      { k: 'Service Type', v: document.getElementById('tx-service-type').value + (document.getElementById('tx-service-type').value === 'Other' ? ': ' + (document.getElementById('tx-desc').value || '') : ''), step: 2 },
       { k: 'Amount', v: sym + fmt(amt) + ' ' + document.getElementById('currency').value, step: 2 },
       { k: 'Escrow Fee', v: '$250.00 USD (flat)', step: 2 },
       { k: 'Payment Method', v: paymentLabels[document.getElementById('payment-method').value] || '—', step: 2 },
@@ -1651,10 +1863,10 @@
     document.getElementById('generatedTxId').textContent = txId;
 
     const amt = parseFloat(document.getElementById('amount').value) || 0;
-    const totalUSD = (amt + ESCROW_FEE).toFixed(2);
-    document.getElementById('paymentAmountDisplay').textContent = fmt(parseFloat(totalUSD)) + ' USD';
+    const totalUsdc = (amt + ESCROW_FEE).toFixed(2);
+    document.getElementById('paymentAmountDisplay').textContent = fmt(parseFloat(totalUsdc)) + ' USDC';
 
-    window._paymentAmount = totalUSD;
+    window._paymentAmount = totalUsdc;
 
     document.getElementById('inspectionSummary').textContent = state.inspection + ' day(s)';
 
@@ -1749,6 +1961,9 @@
 
   // ── AUTO-SELECT CATEGORY FROM URL PARAM ──
   window.addEventListener('DOMContentLoaded', () => {
+    // Build the custom service type dropdown
+    buildSvcDropdown();
+
     // Require login to use this page
     TBAuthUI.init({ requireAuth: true });
 
@@ -1772,7 +1987,7 @@
       if (TBAuth.usernameExists(val)) {
         cpStatus.innerHTML = '<span style="color:#27a85e;font-weight:600;">✓ Username found on TrustBridge</span>';
       } else {
-        cpStatus.innerHTML = '<span style="color:#e07b20;">⚠ Username not found — they\'ll need to create an account to accept.</span>';
+        cpStatus.innerHTML = '<span style="color:#e53e3e;">✗ No TrustBridge account found. The other party must have an account to be invited.</span>';
       }
     });
 
