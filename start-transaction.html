@@ -1565,13 +1565,8 @@
         else { hideError(f.err, f.id); }
       });
 
-      // Validate middleman selection
-      const mm = document.getElementById('middleman-select').value;
-      if (!mm) {
-        showError('middleman-error', 'middleman-select'); ok = false;
-      } else {
-        hideError('middleman-error', 'middleman-select');
-      }
+      // Validate counterparty username
+      const cpInput = document.getElementById('counterparty-username').value.trim();
       const cpStatus = document.getElementById('counterparty-status');
       const currentUser = TBAuth.getUser();
       if (!cpInput) {
@@ -1589,6 +1584,17 @@
         } else {
           cpStatus.innerHTML = '<span style="color:#e07b20;">⚠ Username not found — they\'ll need to create an account to accept.</span>';
         }
+      }
+
+      // Validate middleman selection
+      const mm = document.getElementById('middleman-select').value;
+      if (!mm) {
+        showError('middleman-error', null);
+        document.getElementById('mm-trigger').style.borderColor = 'var(--red)';
+        ok = false;
+      } else {
+        hideError('middleman-error', null);
+        document.getElementById('mm-trigger').style.borderColor = 'var(--blue-bright)';
       }
     }
 
