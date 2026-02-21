@@ -916,16 +916,58 @@
       .testi-grid { grid-template-columns: 1fr; gap: 1rem; }
       .footer-top { grid-template-columns: 1fr 1fr; gap: 2rem; }
     }
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
+      /* Nav: hide links, compress actions */
       .nav-links { display: none; }
-      .steps-grid { grid-template-columns: 1fr; }
+      .nav-inner { padding: 0 1rem; height: 60px; }
+      .nav-actions { gap: 0.4rem; }
+      /* Hide "Start a Transaction" nav button on mobile — hero CTA covers it */
+      .nav-actions > a.btn-primary { display: none; }
+      /* Auth buttons inline, compact */
+      #tb-nav-auth { gap: 0.4rem !important; }
+      #tb-nav-auth button {
+        padding: 0.38rem 0.75rem !important;
+        font-size: 0.78rem !important;
+      }
+      .logo-text { font-size: 1.2rem; }
+
+      /* Hero */
+      .hero { padding-top: 60px; }
+      .hero-inner { padding: 2rem 1.25rem; }
+      .hero-title { font-size: clamp(2rem, 8vw, 2.8rem); }
+      .hero-sub { font-size: 0.95rem; }
+      .hero-ctas { flex-direction: column; gap: 0.75rem; align-items: stretch; }
+      .btn-cta-primary, .btn-cta-secondary { text-align: center; justify-content: center; }
+      .hero-stats { gap: 1.2rem; flex-wrap: wrap; justify-content: center; }
+      .stat-num { font-size: 1.4rem; }
+
+      /* Sections */
+      .section-inner { padding: 0 1.25rem; }
+      .how, .features, .categories, .testimonials { padding: 4rem 0; }
+      .steps-grid { grid-template-columns: 1fr; gap: 1.5rem; }
       .features-grid { grid-template-columns: 1fr; }
-      .cats-grid { grid-template-columns: 1fr; }
-      .trust-bar-inner { flex-wrap: wrap; gap: 1rem; justify-content: center; }
+      .cats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+      .cat-card { padding: 1.2rem 1rem; }
+
+      /* Trust bar */
+      .trust-bar-inner { flex-wrap: wrap; gap: 0.8rem; justify-content: center; padding: 0 1.25rem; }
       .trust-sep { display: none; }
+
+      /* CTA strip */
+      .cta-strip { padding: 3.5rem 0; }
+      .cta-strip-btns { flex-direction: column; align-items: center; gap: 0.75rem; }
+      .btn-white, .btn-outline-white { width: 100%; max-width: 320px; text-align: center; }
+
+      /* Footer */
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+      .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+      .footer-badges { justify-content: center; }
+    }
+    @media (max-width: 480px) {
+      .cats-grid { grid-template-columns: 1fr; }
       .footer-top { grid-template-columns: 1fr; }
-      .hero-stats { flex-wrap: wrap; }
-      .cta-strip-btns { flex-direction: column; align-items: center; }
+      .hero-stats { flex-direction: column; align-items: center; gap: 0.75rem; }
+      .stat-divider { display: none; }
     }
   </style>
 </head>
