@@ -934,7 +934,7 @@
         </div>
         <p style="font-size:0.88rem;color:var(--text-mid);margin-bottom:1.2rem;line-height:1.6;">Enter the TrustBridge username of the buyer or seller you're transacting with. They'll be linked to this transaction once it's created.</p>
         <div class="form-group">
-          <label>Their TrustBridge Username</label>
+          <label>Their TrustBridge Username <span class="optional">(optional)</span></label>
           <input type="text" id="counterparty-username" placeholder="e.g. johndoe_99" />
           <span class="field-error" id="counterparty-error">Please enter the other party's username.</span>
           <div id="counterparty-status" style="margin-top:0.4rem;font-size:0.8rem;"></div>
@@ -1453,10 +1453,6 @@
   }
 
   // ── ACCOUNT TYPE (show/hide company) ──
-  document.getElementById('my-account-type').addEventListener('change', function() {
-    document.getElementById('company-row').style.display = this.value === 'business' ? 'flex' : 'none';
-  });
-
   // ── FEE CALCULATION ──
   const ESCROW_FEE = 250;
 
@@ -1487,8 +1483,6 @@
 
   document.getElementById('currency').addEventListener('change', updateFee);
   document.getElementById('payment-method').addEventListener('change', updateFee);
-
-  // ── STEP NAVIGATION ──
   function goToStep(n) {
     if (n > state.maxUnlocked) return;
     showStep(n);
@@ -1555,46 +1549,38 @@
     }
 
     if (step === 3) {
-      const fields = [
-        { id: 'my-first', err: 'my-first-error' },
-        { id: 'my-last', err: 'my-last-error' },
-      ];
-      fields.forEach(f => {
-        const val = document.getElementById(f.id).value.trim();
-        if (!val) { showError(f.err, f.id); ok = false; }
-        else { hideError(f.err, f.id); }
-      });
+      // First name required
+      if (!document.getElementById('my-first').value.trim()) {
+        showError('my-first-error', 'my-first'); ok = false;
+      } else { hideError('my-first-error', 'my-first'); }
 
-      // Validate counterparty username
-      const cpInput = document.getElementById('counterparty-username').value.trim();
-      const cpStatus = document.getElementById('counterparty-status');
-      const currentUser = TBAuth.getUser();
-      if (!cpInput) {
-        showError('counterparty-error', 'counterparty-username'); ok = false;
-        cpStatus.textContent = '';
-      } else if (currentUser && cpInput.toLowerCase() === currentUser.username.toLowerCase()) {
-        showError('counterparty-error', 'counterparty-username');
-        document.getElementById('counterparty-error').textContent = 'You cannot invite yourself.';
-        ok = false;
-      } else {
-        hideError('counterparty-error', 'counterparty-username');
-        document.getElementById('counterparty-error').textContent = 'Please enter the other party\'s username.';
-        if (TBAuth.usernameExists(cpInput)) {
+      // Last name required
+      if (!document.getElementById('my-last').value.trim()) {
+        showError('my-last-error', 'my-last'); ok = false;
+      } else { hideError('my-last-error', 'my-last'); }
+
+      // Counterparty — optional, just warn don't block
+      var cpVal = document.getElementById('counterparty-username').value.trim();
+      var cpStatus = document.getElementById('counterparty-status');
+      hideError('counterparty-error', 'counterparty-username');
+      if (cpVal) {
+        var curUser = TBAuth.getUser();
+        if (curUser && cpVal.toLowerCase() === curUser.username.toLowerCase()) {
+          cpStatus.innerHTML = '<span style="color:#e53e3e;">✗ You cannot invite yourself.</span>';
+        } else if (TBAuth.usernameExists(cpVal)) {
           cpStatus.innerHTML = '<span style="color:#27a85e;font-weight:600;">✓ Username found on TrustBridge</span>';
         } else {
           cpStatus.innerHTML = '<span style="color:#e07b20;">⚠ Username not found — they\'ll need to create an account to accept.</span>';
         }
       }
 
-      // Validate middleman selection
+      // Middleman required
       const mm = document.getElementById('middleman-select').value;
       if (!mm) {
         showError('middleman-error', null);
-        document.getElementById('mm-trigger').style.borderColor = 'var(--red)';
         ok = false;
       } else {
         hideError('middleman-error', null);
-        document.getElementById('mm-trigger').style.borderColor = 'var(--blue-bright)';
       }
     }
 
